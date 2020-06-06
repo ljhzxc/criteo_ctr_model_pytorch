@@ -6,3 +6,5 @@ criteo dataset: https://s3-eu-west-1.amazonaws.com/kaggle-display-advertising-ch
 
 ## Reference
 * 石晓文同学的tensorflow实战练习：https://github.com/princewen/tensorflow_practice
+* https://github.com/rixwew/pytorch-fm
+* https://github.com/shenweichen/DeepCTR-Torch
