@@ -14,14 +14,14 @@ from dataset import CriteoDataset
 
 
 class DeepFM_1(torch.nn.Module):
-    def __init__(self, feature_size, field_size, embedding_size, dnn_hidden = [128, 64], device = torch.device('cpu')):
+    def __init__(self, feature_size, field_size, embedding_size, dnn_hidden = [128, 64]):
         super(DeepFM_1, self).__init__()
-        self.shared_emb = torch.nn.Embedding(feature_size, embedding_size).to(device)
-        self.fm_first_order_weight_emb = torch.nn.Embedding(feature_size, 1).to(device)
-        self.fm_bias = torch.nn.Parameter(torch.tensor(0.0)).to(device)
-        self.dnn_layer_1 = torch.nn.Linear(field_size*embedding_size, dnn_hidden[0]).to(device)
-        self.dnn_layer_2 = torch.nn.Linear(dnn_hidden[0], dnn_hidden[1]).to(device)
-        self.dnn_layer_3 = torch.nn.Linear(dnn_hidden[1], 1).to(device)
+        self.shared_emb = torch.nn.Embedding(feature_size, embedding_size)
+        self.fm_first_order_weight_emb = torch.nn.Embedding(feature_size, 1)
+        self.fm_bias = torch.nn.Parameter(torch.tensor(0.0))
+        self.dnn_layer_1 = torch.nn.Linear(field_size*embedding_size, dnn_hidden[0])
+        self.dnn_layer_2 = torch.nn.Linear(dnn_hidden[0], dnn_hidden[1])
+        self.dnn_layer_3 = torch.nn.Linear(dnn_hidden[1], 1)
         
     #idx和vals的shape = (batch_size, field_size)
     def forward(self, idxs, vals):
@@ -50,13 +50,13 @@ class DeepFM_1(torch.nn.Module):
     
 #与DeepFM_1最大的区别是 FM一阶、二阶、DNN的最后结果不直接求和，而是接入一个全连接层
 class DeepFM_2(torch.nn.Module):
-    def __init__(self, feature_size, field_size, embedding_size, dnn_hidden = [128, 64], device = torch.device('cpu')):
+    def __init__(self, feature_size, field_size, embedding_size, dnn_hidden = [128, 64]):
         super(DeepFM_2, self).__init__()
-        self.shared_emb = torch.nn.Embedding(feature_size, embedding_size).to(device)
-        self.fm_first_order_weight_emb = torch.nn.Embedding(feature_size, 1).to(device)
-        self.dnn_layer_1 = torch.nn.Linear(field_size*embedding_size, dnn_hidden[0]).to(device)
-        self.dnn_layer_2 = torch.nn.Linear(dnn_hidden[0], dnn_hidden[1]).to(device)
-        self.fc = torch.nn.Linear(dnn_hidden[1] + field_size + embedding_size, 1).to(device)
+        self.shared_emb = torch.nn.Embedding(feature_size, embedding_size)
+        self.fm_first_order_weight_emb = torch.nn.Embedding(feature_size, 1)
+        self.dnn_layer_1 = torch.nn.Linear(field_size*embedding_size, dnn_hidden[0])
+        self.dnn_layer_2 = torch.nn.Linear(dnn_hidden[0], dnn_hidden[1])
+        self.fc = torch.nn.Linear(dnn_hidden[1] + field_size + embedding_size, 1)
         
     #idx和vals的shape = (batch_size, field_size)
     def forward(self, idxs, vals):
@@ -108,8 +108,8 @@ train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers
 valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=32)
 test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=32)
 
-#model = DeepFM_1(dataset.feature_size, dataset.field_size, embedding_size, dnn_hidden, device)
-model = DeepFM_2(dataset.feature_size, dataset.field_size, embedding_size, dnn_hidden, device)
+#model = DeepFM_1(dataset.feature_size, dataset.field_size, embedding_size, dnn_hidden).to(device)
+model = DeepFM_2(dataset.feature_size, dataset.field_size, embedding_size, dnn_hidden).to(device)
 
 criterion = torch.nn.BCELoss()
 optimizer = torch.optim.Adam(params=model.parameters(), lr=lr, weight_decay=weight_l2)

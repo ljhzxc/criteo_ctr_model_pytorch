@@ -14,17 +14,17 @@ from dataset import CriteoDataset
 
 
 class AFM(torch.nn.Module):
-    def __init__(self, feature_size, field_size, embedding_size, attention_size, device):
+    def __init__(self, feature_size, field_size, embedding_size, attention_size):
         super(AFM, self).__init__()
         self.field_size = field_size
-        self.fm_bias = torch.nn.Parameter(torch.tensor(0.0)).to(device)
-        self.fm_first_order_weight_emb = torch.nn.Embedding(feature_size, 1).to(device)
+        self.fm_bias = torch.nn.Parameter(torch.tensor(0.0))
+        self.fm_first_order_weight_emb = torch.nn.Embedding(feature_size, 1)
         #这里指的是FM二阶项的向量
-        self.fm_emb = torch.nn.Embedding(feature_size, embedding_size).to(device)
-        self.attention_w = torch.nn.Linear(embedding_size, attention_size).to(device)
-        self.attention_b = torch.nn.Parameter(torch.Tensor(attention_size)).to(device)
-        self.attention_h = torch.nn.Linear(attention_size, 1).to(device)
-        self.fc_p = torch.nn.Linear(embedding_size, 1).to(device)
+        self.fm_emb = torch.nn.Embedding(feature_size, embedding_size)
+        self.attention_w = torch.nn.Linear(embedding_size, attention_size)
+        self.attention_b = torch.nn.Parameter(torch.Tensor(attention_size))
+        self.attention_h = torch.nn.Linear(attention_size, 1)
+        self.fc_p = torch.nn.Linear(embedding_size, 1)
 
     #idx和vals的shape = (batch_size, field_size)
     def forward(self, idxs, vals):
@@ -40,9 +40,9 @@ class AFM(torch.nn.Module):
                 att_e = self.attention_h(F.relu(self.attention_w(tmp)) + self.attention_b)
                 emb_list.append(tmp.tolist()), attention_list.append(att_e.tolist())
 
-        emb_cross = torch.tensor(emb_list).permute(1,0,2).to(device)
+        emb_cross = torch.tensor(emb_list).permute(1,0,2)
         #计算attention单项数值e_{ij}
-        att_e_cross = torch.tensor(attention_list).permute(1,0,2).squeeze(-1).to(device)
+        att_e_cross = torch.tensor(attention_list).permute(1,0,2).squeeze(-1)
         '''
 
         #参考其他人的版本
@@ -50,7 +50,7 @@ class AFM(torch.nn.Module):
         for i in range(self.field_size - 1):
             for j in range(i + 1, self.field_size):
                 row.append(i), col.append(j)
-        p, q = emb[:, row].to(device), emb[:, col].to(device)
+        p, q = emb[:, row], emb[:, col]
         emb_cross = p * q
         #计算attention单项数值e_{ij}
         att_e_cross = self.attention_h(F.relu(self.attention_w(emb_cross)) + self.attention_b).squeeze(-1)
@@ -91,7 +91,7 @@ train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers
 valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=32)
 test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=32)
 
-model = AFM(dataset.feature_size, dataset.field_size, embedding_size, attention_size, device)
+model = AFM(dataset.feature_size, dataset.field_size, embedding_size, attention_size).to(device)
 st = time.time()
 criterion = torch.nn.BCELoss()
 optimizer = torch.optim.Adam(params=model.parameters(), lr=lr, weight_decay=weight_l2)
