@@ -33,7 +33,6 @@ class DCN(torch.nn.Module):
         self.fc = torch.nn.Linear(input_size + (dnn_hidden[-1] if self.dnn_layer_num > 0 else input_size), 1)
     
     def forward(self, idxs, vals):
-        #fm 二次型-带attention
         emb = self.fm_emb(idxs) * vals.unsqueeze(-1)
         emb = torch.flatten(emb, start_dim=1)
         
