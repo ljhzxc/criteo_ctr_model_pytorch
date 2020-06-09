@@ -46,7 +46,6 @@ class DCN(torch.nn.Module):
         dnn = emb
         #dnn部分
         for i in range(self.dnn_layer_num):
-            #每层的cross计算时，w_l可以先和x_l进行，减少计算量
             dnn = F.relu(self.dnn_layer[i](dnn))
         merge = torch.cat((cross, dnn), dim=1)
         return torch.sigmoid(self.fc(merge))
